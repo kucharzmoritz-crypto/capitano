@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Wahl des Kapitäns</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .login-container h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #333;
+      text-align: center;
+    }
+
+    .login-container p {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .error-message {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    /* Admin Dashboard */
+    .admin-dashboard {
+      display: none;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .admin-dashboard.show {
+      display: block;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 20px;
+    }
+
+    .admin-header h1 {
+      color: #333;
+      font-size: 28px;
+    }
+
+    .logout-btn {
+      background: #ccc;
+      color: #333;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #999;
+    }
+
+    .deadline-info {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .deadline-info strong {
+      color: #333;
+    }
+
+    .voting-closed {
+      background: #ffe5e5;
+      border: 2px solid #ff6b6b;
+      color: #c33;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .voting-open {
+      background: #e5ffe5;
+      border: 2px solid #51cf66;
+      color: #2f8e3b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .results-section {
+      margin-top: 30px;
+    }
+
+    .results-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+
+    .result-name {
+      flex: 1;
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .result-votes {
+      text-align: right;
+      min-width: 80px;
+    }
+
+    .result-count {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .result-bar {
+      width: 200px;
+      height: 20px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .result-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s;
+    }
+
+    .export-buttons {
+      margin-top: 30px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .export-btn {
+      padding: 12px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .export-btn:hover {
+      background: #764ba2;
+    }
+
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f0f0f0;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .total-votes {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .total-votes strong {
+      font-size: 24px;
+      color: #667eea;
+      display: block;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login-Bereich -->
+  <div class="login-container" id="loginContainer">
+    <h1>Admin-Bereich</h1>
+    <p>Geben Sie Ihre Zugangsdaten ein</p>
+    <div class="error-message" id="errorMessage"></div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Benutzername</label>
+        <input type="text" id="username" placeholder="admin" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Passwort</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="login-btn">Anmelden</button>
+    </form>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div class="admin-dashboard" id="adminDashboard">
+    <div class="admin-header">
+      <h1>📊 Abstimmungs-Ergebnisse</h1>
+      <button class="logout-btn" onclick="logout()">Abmelden</button>
+    </div>
+
+    <div class="deadline-info">
+      <strong>Sperrzeitpunkt:</strong> Samstag, 02.08.2024, 19:00 Uhr (Berlin)<br>
+      <strong>Status:</strong> <span id="statusText">Wird ermittelt...</span>
+    </div>
+
+    <div id="votingStatus"></div>
+
+    <div class="total-votes">
+      <span>Gesamte Stimmen</span>
+      <strong id="totalVotes">0</strong>
+    </div>
+
+    <div class="results-section">
+      <h2>Kandidaten-Ergebnisse</h2>
+      <div id="resultsContainer" class="loading">
+        <div class="spinner"></div> Wird geladen...
+      </div>
+    </div>
+
+    <div class="export-buttons">
+      <button class="export-btn" onclick="exportAsCSV()">📥 CSV herunterladen</button>
+      <button class="export-btn" onclick="exportAsJSON()">📥 JSON herunterladen</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    // Admin-Zugangsdaten
+    const ADMIN_CREDENTIALS = {
+      username: "admin",
+      password: "!TSV1952!"
+    };
+
+    // Login-Handler
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const errorMsg = document.getElementById("errorMessage");
+
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        localStorage.setItem("adminLoggedIn", "true");
+        showAdminDashboard();
+      } else {
+        errorMsg.textContent = "❌ Benutzername oder Passwort falsch";
+        errorMsg.classList.add("show");
+        setTimeout(() => errorMsg.classList.remove("show"), 3000);
+      }
+    });
+
+    // Admin-Dashboard anzeigen
+    function showAdminDashboard() {
+      document.getElementById("loginContainer").style.display = "none";
+      document.getElementById("adminDashboard").classList.add("show");
+      loadResults();
+      // Auto-Aktualisierung alle 10 Sekunden
+      setInterval(loadResults, 10000);
+    }
+
+    // Abmelden
+    function logout() {
+      localStorage.removeItem("adminLoggedIn");
+      document.getElementById("adminDashboard").classList.remove("show");
+      document.getElementById("loginContainer").style.display = "block";
+      document.getElementById("loginForm").reset();
+    }
+
+    // Deadline berechnen
+    function isVotingClosed() {
+      const deadline = new Date("2024-08-02T19:00:00+02:00");
+      const now = new Date();
+      return now >= deadline;
+    }
+
+    // Ergebnisse laden
+    async function loadResults() {
+      const isClosed = isVotingClosed();
+      const statusText = document.getElementById("statusText");
+      const votingStatusDiv = document.getElementById("votingStatus");
+
+      if (isClosed) {
+        statusText.textContent = "✅ Abstimmung beendet";
+        votingStatusDiv.innerHTML = '<div class="voting-closed">🔒 Abstimmung ist abgeschlossen</div>';
+      } else {
+        statusText.textContent = "⏱️ Abstimmung läuft";
+        votingStatusDiv.innerHTML = '<div class="voting-open">🔓 Abstimmung ist aktiv</div>';
+      }
+
+      if (window.WAHL_CONFIG.MODE === "supabase") {
+        await loadResultsFromSupabase();
+      } else {
+        loadResultsFromLocalStorage();
+      }
+    }
+
+    // Ergebnisse von Supabase laden
+    async function loadResultsFromSupabase() {
+      try {
+        const { createClient } = window.supabase;
+        const supabase = createClient(
+          window.WAHL_CONFIG.SUPABASE_URL,
+          window.WAHL_CONFIG.SUPABASE_ANON_KEY
+        );
+
+        const { data, error } = await supabase.from("public_results").select("*");
+
+        if (error) {
+          console.error("Fehler beim Laden der Ergebnisse:", error);
+          document.getElementById("resultsContainer").innerHTML =
+            '<p style="color: red;">❌ Fehler beim Laden. Stelle sicher, dass Supabase konfiguriert ist.</p>';
+          return;
+        }
+
+        displayResults(data);
+      } catch (err) {
+        console.error("Fehler:", err);
+        document.getElementById("resultsContainer").innerHTML =
+          '<p style="color: red;">❌ Supabase-Verbindung fehlgeschlagen.</p>';
+      }
+    }
+
+    // Ergebnisse aus LocalStorage laden
+    function loadResultsFromLocalStorage() {
+      const votes = JSON.parse(localStorage.getItem("votes") || "{}");
+      const results = window.WAHL_CONFIG.CANDIDATES.map((candidate) => ({
+        candidate,
+        votes: (votes[candidate] || []).length,
+      }));
+      displayResults(results);
+    }
+
+    // Ergebnisse anzeigen
+    function displayResults(results) {
+      const resultsContainer = document.getElementById("resultsContainer");
+      const totalVotesEl = document.getElementById("totalVotes");
+
+      const sortedResults = results.sort((a, b) => {
+        const voteCountB = b.votes || 0;
+        const voteCountA = a.votes || 0;
+        return voteCountB - voteCountA;
+      });
+
+      const totalVotes = sortedResults.reduce((sum, r) => sum + (r.votes || 0), 0);
+      totalVotesEl.textContent = totalVotes;
+
+      const maxVotes = Math.max(...sortedResults.map((r) => r.votes || 0), 1);
+
+      resultsContainer.innerHTML = sortedResults
+        .map((result) => {
+          const voteCount = result.votes || 0;
+          const percentage = totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(1) : 0;
+          const barWidth = totalVotes > 0 ? (voteCount / maxVotes) * 100 : 0;
+
+          return `
+            <div class="result-item">
+              <div class="result-name">${result.candidate || result}</div>
+              <div class="result-votes">
+                <div class="result-count">${voteCount}</div>
+                <div style="font-size: 12px; color: #999;">${percentage}%</div>
+              </div>
+              <div class="result-bar">
+                <div class="result-bar-fill" style="width: ${barWidth}%"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    // CSV exportieren
+    function exportAsCSV() {
+      if (window.WAHL_CONFIG.MODE === "supabase") {
+        alert("CSV-Export ist nur im Local-Mode verfügbar. Bitte verwende JSON-Export.");
+        return;
+      }
+
+      const votes = JSON.parse(localStorage.getItem("votes") || "{}");
+      const results = window.WAHL_CONFIG.CANDIDATES.map((candidate) => ({
+        candidate,
+        votes: (votes[candidate] || []).length,
+      }));
+
+      let csv = "Kandidat,Stimmen\n";
+      results.forEach((r) => {
+        csv += `"${r.candidate}",${r.votes}\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ergebnisse-${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+    }
+
+    // JSON exportieren
+    function exportAsJSON() {
+      if (window.WAHL_CONFIG.MODE === "supabase") {
+        alert("JSON-Export ist nur im Local-Mode verfügbar.");
+        return;
+      }
+
+      const votes = JSON.parse(localStorage.getItem("votes") || "{}");
+      const results = window.WAHL_CONFIG.CANDIDATES.map((candidate) => ({
+        candidate,
+        votes: (votes[candidate] || []).length,
+      }));
+
+      const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ergebnisse-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+    }
+
+    // Beim Laden prüfen, ob Admin angemeldet ist
+    window.addEventListener("load", () => {
+      if (localStorage.getItem("adminLoggedIn") === "true") {
+        showAdminDashboard();
+      }
+    });
+  </script>
+</body>
+</html>

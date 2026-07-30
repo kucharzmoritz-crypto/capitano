@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Wahl des Kapitäns</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="head">
+        <p class="kicker">Anonyme Abstimmung</p>
+        <h1 id="title">Wahl des Kapitäns</h1>
+        <p class="subtitle" id="subtitle"></p>
+      </header>
+
+      <section class="panel" id="gate" hidden>
+        <h2>Zugangscode</h2>
+        <p class="hint">Bitte gib den Code ein, den du erhalten hast.</p>
+        <form id="gate-form" class="gate-form">
+          <input
+            type="password"
+            id="gate-input"
+            autocomplete="off"
+            placeholder="Code"
+            aria-label="Zugangscode"
+          />
+          <button type="submit" class="btn">Weiter</button>
+        </form>
+        <p class="error" id="gate-error" hidden>Code ist nicht korrekt.</p>
+      </section>
+
+      <section class="panel" id="vote" hidden>
+        <h2>Wem gibst du deine Stimmen?</h2>
+        <p class="hint hint-top" id="vote-hint"></p>
+        <ul class="candidates" id="candidates"></ul>
+        <button class="btn btn-primary" id="submit" disabled>
+          Stimmen abgeben
+        </button>
+        <p class="hint">
+          Es wird nur gespeichert, <em>welche</em> Namen Stimmen erhalten haben –
+          nicht, von wem.
+        </p>
+        <p class="error" id="vote-error" hidden></p>
+      </section>
+
+      <section class="panel" id="results" hidden>
+        <div class="results-head">
+          <h2>Ergebnis</h2>
+          <button class="btn btn-ghost" id="refresh">Aktualisieren</button>
+        </div>
+        <p class="done" id="done" hidden>
+          Danke, deine Stimme wurde gezählt.
+        </p>
+        <ul class="bars" id="bars"></ul>
+        <p class="total" id="total"></p>
+      </section>
+
+      <footer class="foot">
+        <span id="mode-badge" class="badge"></span>
+      </footer>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
