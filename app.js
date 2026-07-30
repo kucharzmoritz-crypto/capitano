@@ -36,7 +36,7 @@
    * Hilfsfunktionen
    * ------------------------------------------------------------------ */
 
-  function voterToken() {
+  function baseVoterToken() {
     let token = localStorage.getItem(KEY_TOKEN);
     if (!token) {
       token = crypto.randomUUID
@@ -45,6 +45,13 @@
       localStorage.setItem(KEY_TOKEN, token);
     }
     return token;
+  }
+
+  function voterTokenForCandidate(candidate) {
+    // Jeder Kandidat bekommt einen einzigartigen Token
+    // baseToken + candidate + index
+    const base = baseVoterToken();
+    return base + "-" + candidate.replace(/\s+/g, "_");
   }
 
   function hasVoted() {
@@ -82,7 +89,7 @@
   };
 
   /* ------------------------------------------------------------------ *
-   * Speicher: Supabase / PostgreSQL (VERBESSERT)
+   * Speicher: Supabase / PostgreSQL
    * ------------------------------------------------------------------ */
 
   const supabaseStore = {
@@ -95,79 +102,56 @@
     },
 
     async submit(candidates) {
-      const token = voterToken();
+      // Jeder Kandidat bekommt einen einzigartigen Token!
       const rows = candidates.map((candidate) => ({
         candidate: candidate,
-        voter_token: token,
+        voter_token: voterTokenForCandidate(candidate),
       }));
 
       console.log("📤 Sende Stimmen zu Supabase:", rows);
-      console.log("🔗 URL:", cfg.SUPABASE_URL + "/rest/v1/votes");
 
-      try {
-        const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/votes", {
-          method: "POST",
-          headers: { ...this.headers(), Prefer: "return=minimal" },
-          body: JSON.stringify(rows),
-        });
+      const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/votes", {
+        method: "POST",
+        headers: { ...this.headers(), Prefer: "return=minimal" },
+        body: JSON.stringify(rows),
+      });
 
-        console.log("📥 Supabase Antwort:", res.status, res.statusText);
+      console.log("📥 Response Status:", res.status);
 
-        if (res.ok) {
-          console.log("✅ Stimmen gespeichert!");
-          return;
-        }
-
-        const text = await res.text();
-        console.error("❌ Fehler von Supabase:", text);
-
-        if (res.status === 409 || /bereits/.test(text)) {
-          const err = new Error("Von diesem Gerät wurde bereits abgestimmt.");
-          err.alreadyVoted = true;
-          throw err;
-        }
-
-        throw new Error(
-          "Die Stimmen konnten nicht gespeichert werden (" + res.status + "). " + text
-        );
-      } catch (error) {
-        console.error("❌ Fetch Error:", error);
-        throw error;
+      if (res.ok) {
+        console.log("✅ Stimmen gespeichert!");
+        return;
       }
+
+      const text = await res.text();
+      console.error("❌ Fehler:", text);
+
+      if (res.status === 409 || /bereits/.test(text)) {
+        const err = new Error("Von diesem Gerät wurde bereits abgestimmt.");
+        err.alreadyVoted = true;
+        throw err;
+      }
+      throw new Error(
+        "Die Stimmen konnten nicht gespeichert werden (" + res.status + ")."
+      );
     },
 
     async results() {
-      console.log("📊 Lade Ergebnisse von Supabase...");
-      console.log("🔗 URL:", cfg.SUPABASE_URL + "/rest/v1/results");
-
-      try {
-        const res = await fetch(
-          cfg.SUPABASE_URL + "/rest/v1/results?select=candidate,stimmen",
-          { headers: this.headers() }
+      const res = await fetch(
+        cfg.SUPABASE_URL + "/rest/v1/results?select=candidate,stimmen",
+        { headers: this.headers() }
+      );
+      if (!res.ok) {
+        throw new Error(
+          "Ergebnisse konnten nicht geladen werden (" + res.status + ")."
         );
-
-        console.log("📥 Ergebnis Antwort:", res.status, res.statusText);
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error("❌ Fehler:", text);
-          throw new Error(
-            "Ergebnisse konnten nicht geladen werden (" + res.status + ")."
-          );
-        }
-
-        const rows = await res.json();
-        console.log("✅ Ergebnisse geladen:", rows);
-
-        const counts = {};
-        for (const row of rows) {
-          counts[row.candidate] = Number(row.stimmen) || 0;
-        }
-        return counts;
-      } catch (error) {
-        console.error("❌ Fetch Error:", error);
-        throw error;
       }
+      const rows = await res.json();
+      const counts = {};
+      for (const row of rows) {
+        counts[row.candidate] = Number(row.stimmen) || 0;
+      }
+      return counts;
     },
   };
 
@@ -337,9 +321,6 @@
       cfg.MODE === "supabase"
         ? "Verbunden mit PostgreSQL"
         : "Testmodus – Stimmen bleiben nur in diesem Browser";
-
-    console.log("🚀 Modus:", cfg.MODE);
-    console.log("📋 Kandidaten:", cfg.CANDIDATES);
 
     renderCandidates();
     el.voteHint.textContent =
