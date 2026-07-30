@@ -12,7 +12,7 @@ window.WAHL_CONFIG = {
   TITLE: "Wahl des Kapitäns",
   SUBTITLE: "Abstimmung im Team",
   CANDIDATES: ["David", "Tim", "Patrick", "Alex", "Perparim", "Lukas F", "Moritz"],
-  VOTES_PER_PERSON: 1,
+  VOTES_PER_PERSON: 3,  // ← 3 Stimmen pro Person!
 
   // ---- Ergebnisse ----
   SHOW_RESULTS_BEFORE_VOTE: false,
